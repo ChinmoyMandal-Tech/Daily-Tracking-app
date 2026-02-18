@@ -56,7 +56,6 @@ const DashboardView = ({
     deleteHabit,
     updateNote
 }) => {
-    // Calculate progress inside the view or pass it down
     const todayLog = logs[todayStr] || { completed_habit_ids: [], note: '' };
     const completedCount = todayLog.completed_habit_ids.length;
     const totalActive = activeHabits.length;
@@ -64,12 +63,13 @@ const DashboardView = ({
 
     return (
         <div className="space-y-6">
-            {/* Header & Progress */}
             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                 <div className="flex justify-between items-end mb-4">
                     <div>
                         <h2 className="text-2xl font-bold text-slate-800">Today</h2>
-                        <p className="text-slate-500 text-sm">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+                        <p className="text-slate-500 text-sm">
+                            {new Date(todayStr).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                        </p>
                     </div>
                     <div className="text-right">
                         <span className="text-3xl font-bold text-indigo-600">{progressPercentage}%</span>
@@ -83,7 +83,6 @@ const DashboardView = ({
                 </div>
             </div>
 
-            {/* Habits List */}
             <div className="space-y-1">
                 {activeHabits.length === 0 ? (
                     <div className="text-center py-10 text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-300">
@@ -106,7 +105,6 @@ const DashboardView = ({
                 )}
             </div>
 
-            {/* Add Habit Input */}
             <form onSubmit={addHabit} className="flex gap-2">
                 <input
                     type="text"
@@ -124,7 +122,6 @@ const DashboardView = ({
                 </button>
             </form>
 
-            {/* Daily Remarks */}
             <div className="bg-white p-4 rounded-xl border border-slate-200">
                 <h3 className="text-sm font-semibold text-slate-600 mb-2">Daily Remarks</h3>
                 <textarea
@@ -280,15 +277,30 @@ const SettingsView = ({ habits, logs, setHabits, setLogs, todayStr }) => {
 // --- MAIN COMPONENT ---
 
 const DailyTracker = () => {
-    const getTodayStr = () => new Date().toISOString().split('T')[0];
-    const todayStr = getTodayStr();
 
-    // --- STATE WITH LAZY INITIALIZATION (The Fix) ---
+    // Using 'en-CA' forces YYYY-MM-DD format based on LOCAL time
+    const getTodayStr = () => new Date().toLocaleDateString('en-CA');
+
+    // Initial state loads correctly
+    const [todayStr, setTodayStr] = useState(getTodayStr());
+
+    //Check date every minute, but only re-render if day changed
+    useEffect(() => {
+        const timer = setInterval(() => {
+            const current = getTodayStr();
+            if (current !== todayStr) {
+                setTodayStr(current); // Only updates state if midnight passed
+            }
+        }, 60000); // Checks every 60 seconds
+
+        return () => clearInterval(timer);
+    }, [todayStr]);
+
 
     const [view, setView] = useState('dashboard');
     const [newHabitName, setNewHabitName] = useState('');
 
-    // 1. Load Habits immediately (before render)
+    // Load Habits (Lazy Init)
     const [habits, setHabits] = useState(() => {
         try {
             const savedData = localStorage.getItem('routine_tracker_data');
@@ -299,7 +311,7 @@ const DailyTracker = () => {
         }
     });
 
-    // 2. Load Logs immediately (before render)
+    // Load Logs (Lazy Init)
     const [logs, setLogs] = useState(() => {
         try {
             const savedData = localStorage.getItem('routine_tracker_data');
@@ -310,7 +322,7 @@ const DailyTracker = () => {
         }
     });
 
-    // Save
+    // Save Data
     useEffect(() => {
         localStorage.setItem('routine_tracker_data', JSON.stringify({ habits, logs }));
     }, [habits, logs]);
