@@ -149,6 +149,7 @@ const HistoryView = ({ logs, habits, todayStr }) => {
 
                 const dayLog = logs[date];
                 const dayCompletedCount = dayLog.completed_habit_ids.length;
+                dayLog.completed_habit_ids.sort();
                 const indicatorColor = dayCompletedCount > 0 ? 'bg-green-500' : 'bg-slate-300';
 
                 return (
