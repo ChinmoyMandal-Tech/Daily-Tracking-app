@@ -174,7 +174,7 @@ const HistoryView = ({ logs, habits, todayStr }) => {
                             {dayLog.completed_habit_ids.map(hId => {
                                 const h = habits.find(ref => ref.id === hId);
                                 return h ? (
-                                    <span key={hId} className="text-xs px-2 py-1 bg-green-50 text-green-700 border border-green-100 rounded-md">
+                                    <span key={hId} className={`text-xs px-2 py-1 ${h.color || 'bg-green-100'} text-green-700 border border-green-100 rounded-md`}>
                                         {h.name}
                                     </span>
                                 ) : null;
@@ -328,6 +328,7 @@ const DailyTracker = () => {
         localStorage.setItem('routine_tracker_data', JSON.stringify({ habits, logs }));
     }, [habits, logs]);
 
+    const bgCol = ['bg-green-100', 'bg-yellow-100', 'bg-red-100', 'bg-slate-100', 'bg-indigo-100', 'bg-orange-100', 'bg-pink-100', 'bg-purple-100', 'bg-blue-100', 'bg-teal-100'];
     // Actions
     const addHabit = (e) => {
         e.preventDefault();
@@ -335,6 +336,7 @@ const DailyTracker = () => {
         const newHabit = {
             id: Date.now().toString(),
             name: newHabitName,
+            color: bgCol[Math.floor(Math.random() * bgCol.length)],
             created_at: new Date().toISOString(),
             is_deleted: false,
         };
